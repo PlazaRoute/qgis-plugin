@@ -20,6 +20,7 @@
  *                                                                         *
  ***************************************************************************/
 """
+import sys
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
 # Initialize Qt resources from file resources.py
@@ -28,6 +29,13 @@ import resources
 # Import the code for the DockWidget
 from plaza_route_dockwidget import PlazaRouteDockWidget
 import os.path
+
+# setup debugging
+# pth = '/opt/pycharm/debug-eggs/pycharm-debug.egg'
+# if pth not in sys.path:
+#     sys.path.append(pth)
+# import pydevd
+# pydevd.settrace('localhost', port=53100, stdoutToServer=True, stderrToServer=True)
 
 
 class PlazaRoute:
