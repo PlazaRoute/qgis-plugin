@@ -1,0 +1,5 @@
+venv/
+help/build
+.noseids
+.vscode
+*.pyc
