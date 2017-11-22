@@ -3,3 +3,4 @@ help/build
 .noseids
 .vscode
 *.pyc
+.idea/
