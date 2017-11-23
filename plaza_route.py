@@ -20,18 +20,20 @@
  *                                                                         *
  ***************************************************************************/
 """
-import sys
+import os.path
+
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
+
+from qgis.gui import QgsMapToolEmitPoint
+
 # Initialize Qt resources from file resources.py
 import resources
 
-# Import the code for the DockWidget
 from plaza_route_dockwidget import PlazaRouteDockWidget
-import os.path
 
 # setup debugging
-# pth = '/opt/pycharm/debug-eggs/pycharm-debug.egg'
+# pth = '/opt/dev/ide/pycharm-2017.2.4/debug-eggs/pycharm-debug.egg'
 # if pth not in sys.path:
 #     sys.path.append(pth)
 # import pydevd
@@ -39,23 +41,12 @@ import os.path
 
 
 class PlazaRoute:
-    """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
-        """Constructor.
-
-        :param iface: An interface instance that will be passed to this class
-            which provides the hook by which you can manipulate the QGIS
-            application at run time.
-        :type iface: QgsInterface
-        """
-        # Save reference to the QGIS interface
         self.iface = iface
 
-        # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
 
-        # initialize locale
         locale = QSettings().value('locale/userLocale')[0:2]
         locale_path = os.path.join(
             self.plugin_dir,
@@ -76,77 +67,34 @@ class PlazaRoute:
         self.toolbar = self.iface.addToolBar(u'PlazaRoute')
         self.toolbar.setObjectName(u'PlazaRoute')
 
-        #print "** INITIALIZING PlazaRoute"
-
         self.pluginIsActive = False
         self.dockwidget = None
 
+        # Create the map tool to handle clicks on a map in QGIS
+        self.canvas = self.iface.mapCanvas()
+        self.pointTool = QgsMapToolEmitPoint(self.canvas)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
-        """Get the translation for a string using Qt translation API.
-
+        """
+        Get the translation for a string using Qt translation API.
         We implement this ourselves since we do not inherit QObject.
-
-        :param message: String for translation.
-        :type message: str, QString
-
-        :returns: Translated version of message.
-        :rtype: QString
         """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('PlazaRoute', message)
 
-
     def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
-        """Add a toolbar icon to the toolbar.
-
-        :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-        :type icon_path: str
-
-        :param text: Text that should be shown in menu items for this action.
-        :type text: str
-
-        :param callback: Function to be called when the action is triggered.
-        :type callback: function
-
-        :param enabled_flag: A flag indicating if the action should be enabled
-            by default. Defaults to True.
-        :type enabled_flag: bool
-
-        :param add_to_menu: Flag indicating whether the action should also
-            be added to the menu. Defaults to True.
-        :type add_to_menu: bool
-
-        :param add_to_toolbar: Flag indicating whether the action should also
-            be added to the toolbar. Defaults to True.
-        :type add_to_toolbar: bool
-
-        :param status_tip: Optional text to show in a popup when mouse pointer
-            hovers over the action.
-        :type status_tip: str
-
-        :param parent: Parent widget for the new action. Defaults None.
-        :type parent: QWidget
-
-        :param whats_this: Optional text to show in the status bar when the
-            mouse pointer hovers over the action.
-
-        :returns: The action that was created. Note that the action is also
-            added to self.actions list.
-        :rtype: QAction
-        """
+            self,
+            icon_path,
+            text,
+            callback,
+            enabled_flag=True,
+            add_to_menu=True,
+            add_to_toolbar=True,
+            status_tip=None,
+            whats_this=None,
+            parent=None):
+        """ Add a toolbar icon to the toolbar. """
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
@@ -171,10 +119,8 @@ class PlazaRoute:
 
         return action
 
-
     def initGui(self):
-        """Create the menu entries and toolbar icons inside the QGIS GUI."""
-
+        """ Create the menu entries and toolbar icons inside the QGIS GUI."""
         icon_path = ':/plugins/PlazaRoute/icon.png'
         self.add_action(
             icon_path,
@@ -182,60 +128,50 @@ class PlazaRoute:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-    #--------------------------------------------------------------------------
+        self.pointTool.canvasClicked.connect(self.display_point)
+
+    def display_point(self, point, button):
+        coordinates = "{}, {}".format(point.x(), point.y())
+        self.dockwidget.start_value.setText(str(coordinates))
+
+    def set_map_tool(self):
+        self.canvas.setMapTool(self.pointTool)
 
     def onClosePlugin(self):
-        """Cleanup necessary items here when plugin dockwidget is closed"""
+        """ Cleanup necessary items here when plugin dockwidget is closed"""
 
-        #print "** CLOSING PlazaRoute"
-
-        # disconnects
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
 
         # remove this statement if dockwidget is to remain
         # for reuse if plugin is reopened
-        # Commented next statement since it causes QGIS crashe
+        # Commented next statement since it causes QGIS crash
         # when closing the docked window:
         # self.dockwidget = None
 
         self.pluginIsActive = False
 
-
     def unload(self):
-        """Removes the plugin menu item and icon from QGIS GUI."""
-
-        #print "** UNLOAD PlazaRoute"
+        """ Removes the plugin menu item and icon from QGIS GUI."""
 
         for action in self.actions:
             self.iface.removePluginMenu(
                 self.tr(u'&PlazaRoute'),
                 action)
             self.iface.removeToolBarIcon(action)
-        # remove the toolbar
         del self.toolbar
 
-    #--------------------------------------------------------------------------
-
     def run(self):
-        """Run method that loads and starts the plugin"""
+        """ Run method that loads and starts the plugin"""
 
         if not self.pluginIsActive:
             self.pluginIsActive = True
+            if not self.dockwidget:
+                self.dockwidget = PlazaRouteDockWidget(self.iface)
 
-            #print "** STARTING PlazaRoute"
-
-            # dockwidget may not exist if:
-            #    first run of plugin
-            #    removed on close (see self.onClosePlugin method)
-            if self.dockwidget == None:
-                # Create the dockwidget (after translation) and keep reference
-                self.dockwidget = PlazaRouteDockWidget()
-
-            # connect to provide cleanup on closing of dockwidget
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
-            # show the dockwidget
             # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
 
+            self.set_map_tool()

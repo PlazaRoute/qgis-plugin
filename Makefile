@@ -50,7 +50,7 @@ UI_FILES = plaza_route_dockwidget_base.ui
 
 EXTRAS = metadata.txt icon.png
 
-EXTRA_DIRS =
+EXTRA_DIRS = util
 
 COMPILED_RESOURCE_FILES = resources.py
 
@@ -112,6 +112,8 @@ deploy: compile doc
 	cp -vf $(EXTRAS) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
 	# Copy extra directories if any
+	$(foreach var,$(EXTRA_DIRS),cp -r $(var) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/;)
+
   # (temporarily removed)
 
 
