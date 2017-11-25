@@ -115,4 +115,6 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
     def draw_public_transport_connection(self, legs, rubber_band):
         for leg in legs:
             rubber_band.addPoint(QgsPoint(leg['start_position'][1], leg['start_position'][0]))
+            for stopover in leg['stopovers']:
+                rubber_band.addPoint(QgsPoint(stopover[1], stopover[0]))
             rubber_band.addPoint(QgsPoint(leg['exit_position'][1], leg['exit_position'][0]))
