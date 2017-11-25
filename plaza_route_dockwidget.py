@@ -47,6 +47,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
         self.iface = iface
         self.network_access_manager = QtNetwork.QNetworkAccessManager()
+        self.network_access_manager.finished.connect(self.handle_response)
 
         self.show_route_btn.clicked.connect(self.show_route)
 
@@ -80,7 +81,6 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         logger.info(str(url.encodedQuery()))
         req = QtNetwork.QNetworkRequest(url)
 
-        self.network_access_manager.finished.connect(self.handle_response)
         self.network_access_manager.get(req)
 
     def handle_response(self, reply):
