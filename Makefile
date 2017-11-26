@@ -112,7 +112,7 @@ deploy: compile doc
 	cp -vf $(EXTRAS) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
 	# Copy extra directories if any
-	$(foreach var,$(EXTRA_DIRS),cp -r $(var) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/;)
+	$(foreach var,$(EXTRA_DIRS),cp -vfr $(var) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/;)
 
   # (temporarily removed)
 
