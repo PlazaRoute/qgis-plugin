@@ -23,7 +23,6 @@
 
 import os
 import json
-from ast import literal_eval
 
 from PyQt4 import QtGui, uic, QtNetwork
 from PyQt4.QtCore import pyqtSignal, Qt, QUrl
@@ -75,7 +74,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
     def get_route(self):
         url = QUrl(PLAZA_ROUTING_URL)
 
-        url.addQueryItem("start", literal_eval(self.star_value.text()))
+        url.addQueryItem("start", self.start_value.text())
         url.addQueryItem("destination", self.destination_value.text())
         url.addQueryItem("departure", "14:11")
 
