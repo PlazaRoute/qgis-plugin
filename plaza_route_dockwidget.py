@@ -48,6 +48,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
         self.iface = iface
         self.network_access_manager = QtNetwork.QNetworkAccessManager()
+        self.network_access_manager.finished.connect(self.handle_response)
 
         self.show_route_btn.clicked.connect(self.show_route)
 
@@ -81,7 +82,6 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         logger.info(str(url.encodedQuery()))
         req = QtNetwork.QNetworkRequest(url)
 
-        self.network_access_manager.finished.connect(self.handle_response)
         self.network_access_manager.get(req)
 
     def handle_response(self, reply):
@@ -116,4 +116,6 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
     def draw_public_transport_connection(self, legs, rubber_band):
         for leg in legs:
             rubber_band.addPoint(QgsPoint(leg['start_position'][1], leg['start_position'][0]))
+            for stopover in leg['stopovers']:
+                rubber_band.addPoint(QgsPoint(stopover[1], stopover[0]))
             rubber_band.addPoint(QgsPoint(leg['exit_position'][1], leg['exit_position'][0]))
