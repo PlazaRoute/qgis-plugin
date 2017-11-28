@@ -25,8 +25,6 @@ import os.path
 from PyQt4.QtCore import QSettings, QTranslator, qVersion, QCoreApplication, Qt
 from PyQt4.QtGui import QAction, QIcon
 
-from qgis.gui import QgsMapToolEmitPoint
-
 # Initialize Qt resources from file resources.py
 import resources
 
@@ -69,10 +67,6 @@ class PlazaRoute:
 
         self.pluginIsActive = False
         self.dockwidget = None
-
-        # Create the map tool to handle clicks on a map in QGIS
-        self.canvas = self.iface.mapCanvas()
-        self.pointTool = QgsMapToolEmitPoint(self.canvas)
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -128,15 +122,6 @@ class PlazaRoute:
             callback=self.run,
             parent=self.iface.mainWindow())
 
-        self.pointTool.canvasClicked.connect(self.display_point)
-
-    def display_point(self, point, button):
-        coordinates = "{}, {}".format(point.x(), point.y())
-        self.dockwidget.start_value.setText(str(coordinates))
-
-    def set_map_tool(self):
-        self.canvas.setMapTool(self.pointTool)
-
     def onClosePlugin(self):
         """ Cleanup necessary items here when plugin dockwidget is closed"""
 
@@ -174,4 +159,3 @@ class PlazaRoute:
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
 
-            self.set_map_tool()
