@@ -12,20 +12,19 @@ _DEBUG = "debug"
 _INFO = "info"
 _WARN = "warn"
 _CRITICAL = "critical"
-_qgis_available = None
 
 
 def remove_key(text):
     return _KEY_REGEX.sub("", text)
 
 
-def get_temp_dir(path_extension=None):
-    vtr_temp_dir = os.path.join(tempfile.gettempdir(), "plaza_routing")
-    if not os.path.isdir(vtr_temp_dir):
-        os.makedirs(vtr_temp_dir)
+def get_temp_log_dir(path_extension=None):
+    temp_log_dir = os.path.join(tempfile.gettempdir(), "plaza_routing")
+    if not os.path.isdir(temp_log_dir):
+        os.makedirs(temp_log_dir)
     if path_extension:
-        vtr_temp_dir = os.path.join(vtr_temp_dir, path_extension)
-    return vtr_temp_dir
+        temp_log_dir = os.path.join(temp_log_dir, path_extension)
+    return temp_log_dir
 
 
 def info(msg, *args):
@@ -89,7 +88,7 @@ def _log_to_qgis(msg, level):
 
 
 try:
-    log_path = get_temp_dir("plaza_routing_log.txt")
+    log_path = get_temp_log_dir("plaza_routing_log.txt")
     temp_dir = os.path.dirname(log_path)
     if not os.path.isfile(log_path):
         open(log_path, 'a').close()
