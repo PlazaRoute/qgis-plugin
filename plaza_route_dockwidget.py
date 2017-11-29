@@ -30,8 +30,8 @@ from PyQt4.QtCore import pyqtSignal, Qt, QUrl, QTime
 from qgis.core import QGis, QgsPoint
 from qgis.gui import QgsRubberBand, QgsMapToolEmitPoint, QgsVertexMarker, QgsMessageBar
 
-import util.log_helper as logger
-import util.validator as validator
+from util import log_helper as logger
+from util import validator as validator
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'plaza_route_dockwidget_base.ui'))
 
@@ -45,6 +45,7 @@ RUBBER_BAND_WIDTH = 4
 class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
     closingPlugin = pyqtSignal()
+    active_crosshairs = 'start'
     start_marker = None
     destination_marker = None
 
@@ -56,7 +57,6 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.iface = iface
         self.network_access_manager = QtNetwork.QNetworkAccessManager()
 
-        # create the map tool to handle clicks on a map in QGIS
         self.canvas = self.iface.mapCanvas()
         self.point_tool = QgsMapToolEmitPoint(self.canvas)
         self.show_crosshairs()
@@ -79,7 +79,8 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
     def register_events(self):
         self.network_access_manager.finished.connect(self.handle_response)
         self.reset_btn.clicked.connect(self.reset)
-        self.start_select_btn.clicked.connect(self.show_crosshairs)
+        self.start_select_btn.clicked.connect(self.select_start)
+        self.destination_select_btn.clicked.connect(self.select_destination)
         self.point_tool.canvasClicked.connect(self.display_point)
         self.show_route_btn.clicked.connect(self.show_route)
 
@@ -92,29 +93,36 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
     def set_vertex_marker(self, point):
         marker = QgsVertexMarker(self.canvas)
         marker.setColor(QtGui.QColor(0, 255, 0))
-        marker.setIconSize(5)
-        marker.setIconType(QgsVertexMarker.ICON_X)  # or ICON_CROSS, ICON_X
-        marker.setPenWidth(3)
+        marker.setIconSize(7)
+        marker.setPenWidth(2)
+        marker.setIconType(QgsVertexMarker.ICON_X)
         marker.setCenter(point)
         return marker
 
     def reset(self):
-        self.reset_bubberbands()
+        self.reset_rubberbands()
         self.canvas.scene().removeItem(self.start_marker)
         self.canvas.scene().removeItem(self.destination_marker)
+
+    def select_start(self):
+        self.active_crosshairs = 'start'
+        self.show_crosshairs()
+
+    def select_destination(self):
+        self.active_crosshairs = 'destination'
+        self.show_crosshairs()
 
     def show_crosshairs(self):
         self.canvas.setMapTool(self.point_tool)
 
     def display_point(self, point, button):
         coordinate = "{}, {}".format(point.x(), point.y())
-        coordinate_str = str(coordinate)
-        if button == Qt.LeftButton:
-            self.start_value.setText(coordinate_str)
+        if self.active_crosshair == 'start' and button == Qt.LeftButton:
+            self.start_value.setText(coordinate)
             self.canvas.scene().removeItem(self.start_marker)
             self.start_marker = self.set_vertex_marker(QgsPoint(point.x(), point.y()))
-        elif button == Qt.RightButton:
-            self.destination_value.setText(coordinate_str)
+        elif self.active_crosshair == 'destination' or button == Qt.RightButton:
+            self.destination_value.setText(coordinate)
             self.canvas.scene().removeItem(self.destination_marker)
             self.destination_marker = self.set_vertex_marker(QgsPoint(point.x(), point.y()))
 
@@ -136,17 +144,21 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.network_access_manager.get(req)
 
     def validate_routing_params(self):
-        validation_msgs = list()
-        validation_msgs.append(validator.validate_not_empty(self.start_value.text(),
-                                                            self.destination_value.text(),
-                                                            self.departure_value.text()))
+        if validator.has_empty_fields(self.start_value.text(),
+                                      self.destination_value.text(),
+                                      self.departure_value.text()):
+            self._add_qgis_msg(validator.ERROR_MSGS['empty_field'])
+            return False
 
-        validation_msgs.append(validator.validate_coordinate(self.start_value.text()))
-        validation_msgs.append(validator.validate_time(self.departure_value.text()))
+        if not validator.is_valid_coordinate(self.start_value.text()):
+            self._add_qgis_msg(validator.ERROR_MSGS['invalid_coordinate'])
+            return False
 
-        validation_msgs = filter(None, validation_msgs)
-        self._add_qgis_msgs(validation_msgs)
-        return not validation_msgs
+        if not validator.is_valid_departure(self.departure_value.text()):
+            self._add_qgis_msg(validator.ERROR_MSGS['invalid_departure'])
+            return False
+
+        return True
 
     def handle_response(self, reply):
         er = reply.error()
@@ -167,30 +179,28 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
             QtGui.QApplication.restoreOverrideCursor()
 
     def validate_response(self, route):
-        validation_msgs = list()
-        validation_msgs.append(validator.validate_route(route))
-
-        validation_msgs = filter(None, validation_msgs)
-        self._add_qgis_msgs(validation_msgs)
-        return not validation_msgs
+        if not validator.is_valid_route(route):
+            self._add_qgis_msg(validator.ERROR_MSGS['invalid_route'])
+            return False
+        return True
 
     def draw_route(self, route):
-        self.reset_bubberbands()
+        self.reset_rubberbands()
 
         self.draw_walking_route(route['start_walking_route'], self.start_walking_rubber_band)
         self.draw_public_transport_connection(route['public_transport_connection'], self.public_transport_rubber_band)
         self.draw_walking_route(route['end_walking_route'], self.end_walking_rubber_band)
 
     def draw_walking_route(self, route, rubber_band):
-        if not route:  # end walking route is optional
-            return
+        if not route:
+            return  # end walking route is optional
 
         for point in route['path']:
             rubber_band.addPoint(QgsPoint(point[0], point[1]))
 
     def draw_public_transport_connection(self, route, rubber_band):
         if not route:  # public transport route is optional
-            return
+            return  # public transport route is optional
 
         for leg in route['path']:
             rubber_band.addPoint(QgsPoint(leg['start_position'][0], leg['start_position'][1]))
@@ -208,17 +218,13 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
             # just a start walking route was provided
             last_route = 'start_walking_route'
         last_point = route[last_route]['path'][-1]
+        self.canvas.scene().removeItem(self.destination_marker)
         self.destination_marker = self.set_vertex_marker(QgsPoint(last_point[0], last_point[1]))
 
-    def reset_bubberbands(self):
+    def reset_rubberbands(self):
         self.start_walking_rubber_band.reset(QGis.Line)
         self.public_transport_rubber_band.reset(QGis.Line)
         self.end_walking_rubber_band.reset(QGis.Line)
 
     def _add_qgis_msg(self, msg, level=QgsMessageBar.CRITICAL):
         self.iface.messageBar().pushMessage('Error', msg, level=level)
-
-    def _add_qgis_msgs(self, msgs, level=QgsMessageBar.CRITICAL):
-        for msg in msgs:
-            self._add_qgis_msg(msg, level)
-

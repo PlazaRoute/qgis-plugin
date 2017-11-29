@@ -32,6 +32,7 @@ from plaza_route_dockwidget import PlazaRouteDockWidget
 
 # setup debugging
 # pth = '/opt/dev/ide/pycharm-2017.2.4/debug-eggs/pycharm-debug.egg'
+# import sys
 # if pth not in sys.path:
 #     sys.path.append(pth)
 # import pydevd

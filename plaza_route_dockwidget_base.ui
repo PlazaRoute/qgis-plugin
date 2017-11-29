@@ -49,9 +49,6 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="destination_value"/>
-      </item>
       <item row="2" column="0">
        <widget class="QLabel" name="departure_label">
         <property name="text">
@@ -75,6 +72,24 @@
          <string>Route anzeigen</string>
         </property>
        </widget>
+      </item>
+      <item row="1" column="1">
+       <layout class="QHBoxLayout" name="destination_value_layout">
+        <item>
+         <widget class="QLineEdit" name="destination_value"/>
+        </item>
+        <item>
+         <widget class="QToolButton" name="destination_select_btn">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>:/plugins/PlazaRoute/resources/crosshairs.png</normaloff>:/plugins/PlazaRoute/resources/crosshairs.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
