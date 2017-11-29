@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>302</width>
-    <height>163</height>
+    <height>369</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
+    <item row="0" column="0">
      <layout class="QFormLayout" name="base_layout">
       <item row="0" column="0">
        <widget class="QLabel" name="start_label">
@@ -49,30 +49,6 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="departure_label">
-        <property name="text">
-         <string>Abfahrtszeit</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QTimeEdit" name="departure_value"/>
-      </item>
-      <item row="3" column="0">
-       <widget class="QPushButton" name="reset_btn">
-        <property name="text">
-         <string>Zurücksetzen</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="1">
-       <widget class="QPushButton" name="show_route_btn">
-        <property name="text">
-         <string>Route anzeigen</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="1">
        <layout class="QHBoxLayout" name="destination_value_layout">
         <item>
@@ -91,7 +67,55 @@
         </item>
        </layout>
       </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="departure_label">
+        <property name="text">
+         <string>Departure</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QTimeEdit" name="departure_value"/>
+      </item>
+      <item row="3" column="0">
+       <widget class="QPushButton" name="reset_btn">
+        <property name="text">
+         <string>Reset</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QPushButton" name="show_route_btn">
+        <property name="text">
+         <string>Show Route</string>
+        </property>
+       </widget>
+      </item>
      </layout>
+    </item>
+    <item row="1" column="0">
+     <widget class="Line" name="line">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="routing_label">
+      <property name="text">
+       <string>Routing</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QTextEdit" name="routing_value">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
