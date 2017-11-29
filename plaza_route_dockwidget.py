@@ -23,6 +23,8 @@
 
 import os
 import json
+from collections import defaultdict
+import string
 
 from PyQt4 import QtGui, uic, QtNetwork
 from PyQt4.QtCore import pyqtSignal, Qt, QUrl, QTime
@@ -103,6 +105,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.reset_rubberbands()
         self.canvas.scene().removeItem(self.start_marker)
         self.canvas.scene().removeItem(self.destination_marker)
+        self.routing_value.clear()
 
     def select_start(self):
         self.active_crosshairs = 'start'
@@ -117,11 +120,11 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
     def display_point(self, point, button):
         coordinate = "{}, {}".format(point.x(), point.y())
-        if self.active_crosshair == 'start' and button == Qt.LeftButton:
+        if self.active_crosshairs == 'start' and button == Qt.LeftButton:
             self.start_value.setText(coordinate)
             self.canvas.scene().removeItem(self.start_marker)
             self.start_marker = self.set_vertex_marker(QgsPoint(point.x(), point.y()))
-        elif self.active_crosshair == 'destination' or button == Qt.RightButton:
+        elif self.active_crosshairs == 'destination' or button == Qt.RightButton:
             self.destination_value.setText(coordinate)
             self.canvas.scene().removeItem(self.destination_marker)
             self.destination_marker = self.set_vertex_marker(QgsPoint(point.x(), point.y()))
@@ -171,6 +174,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
                     return
                 self.set_destination_marker(route)
                 self.draw_route(route)
+                self.add_routing(route)
             else:
                 logger.warn("Error occured: ", er)
                 logger.warn(reply.errorString())
@@ -207,6 +211,40 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
             for stopover in leg['stopovers']:
                 rubber_band.addPoint(QgsPoint(stopover[0], stopover[1]))
             rubber_band.addPoint(QgsPoint(leg['exit_position'][0], leg['exit_position'][1]))
+
+    def add_routing(self, route):
+        self.routing_value.clear()
+        self.add_start_pedestrian_routing(route)
+        self.add_public_transport_routing(route)
+        self.add_end_pedestrian_routing(route)
+
+    def add_start_pedestrian_routing(self, route):
+        if not route['public_transport_connection']:
+            self.routing_value.append('By foot from start to destination')
+        else:
+            self.routing_value.append(u'By foot from start to {0}\n'.format(
+                route['public_transport_connection']['path'][0]['name']))
+
+    def add_public_transport_routing(self, route):
+        if not route['public_transport_connection']:
+            return
+        for leg in route['public_transport_connection']['path']:
+            values = defaultdict(str,
+                                 line=leg['line'],
+                                 platform=' on platform {0}'.format(leg['track']) if leg['track'] else '',
+                                 start=leg['name'],
+                                 destination=leg['destination'],
+                                 departure=leg['departure'],
+                                 arrival=leg['arrival'])
+            leg_str = string.Formatter().vformat('Public transport with line {line}{platform} from {start} '
+                                                 'to {destination} at {departure} arriving at {arrival}\n', (), values)
+            self.routing_value.append(leg_str)
+
+    def add_end_pedestrian_routing(self, route):
+        if not route['public_transport_connection']:
+            return
+        self.routing_value.append(u'By foot from  {0} to destination\n'.format(
+            route['public_transport_connection']['path'][-1]['destination']))
 
     def set_destination_marker(self, route):
         """
