@@ -26,14 +26,15 @@ import json
 from collections import defaultdict
 import string
 
-from PyQt4 import QtGui, uic, QtNetwork
-from PyQt4.QtCore import pyqtSignal, Qt, QUrl, QTime
+from PyQt4 import QtGui, uic
+from PyQt4.QtCore import pyqtSignal, Qt, QTime
 
 from qgis.core import QGis, QgsPoint
 from qgis.gui import QgsRubberBand, QgsMapToolEmitPoint, QgsVertexMarker, QgsMessageBar
 
 from util import log_helper as logger
 from util import validator as validator
+from plaza_route_service import PlazaRouteService
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'plaza_route_dockwidget_base.ui'))
 
@@ -59,13 +60,14 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.init_gui_values()
 
         self.iface = iface
-        self.network_access_manager = QtNetwork.QNetworkAccessManager()
 
         self.canvas = self.iface.mapCanvas()
         self.point_tool = QgsMapToolEmitPoint(self.canvas)
         self.show_crosshairs()
 
         self.register_events()
+
+        self.plaza_route_service = PlazaRouteService(PLAZA_ROUTING_URL, self.handle_route, self.handle_error)
 
         self.start_walking_rubber_band = self.setup_rubber_band(QGis.Line, LIGHT_RED, RUBBER_BAND_WIDTH)
         self.end_walking_rubber_band = self.setup_rubber_band(QGis.Line, LIGHT_RED, RUBBER_BAND_WIDTH)
@@ -82,7 +84,6 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         event.accept()
 
     def register_events(self):
-        self.network_access_manager.finished.connect(self.handle_response)
         self.reset_btn.clicked.connect(self.reset)
         self.start_select_btn.clicked.connect(self.select_start)
         self.destination_select_btn.clicked.connect(self.select_destination)
@@ -139,15 +140,11 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
             QtGui.QApplication.restoreOverrideCursor()
             return
 
-        url = QUrl(PLAZA_ROUTING_URL)
-        url.addQueryItem("start", self.start_value.text())
-        url.addQueryItem("destination", self.destination_value.text())
-        url.addQueryItem("departure", self.departure_value.text())
+        start = self.start_value.text()
+        destination = self.destination_value.text()
+        departure = self.departure_value.text()
 
-        logger.info(str(url.encodedQuery()))
-        req = QtNetwork.QNetworkRequest(url)
-
-        self.network_access_manager.get(req)
+        self.plaza_route_service.get_route(start, destination, departure)
 
     def validate_routing_params(self):
         if validator.has_empty_fields(self.start_value.text(),
@@ -167,30 +164,20 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
         return True
 
-    def handle_response(self, reply):
-        er = reply.error()
-
+    def handle_route(self, route):
         try:
-            if er == QtNetwork.QNetworkReply.NoError:
-                bytes_string = reply.readAll()
-                route = json.loads(str(bytes_string))
-                if not self.validate_response(route):
-                    return
-                self.set_destination_marker(route)
-                self.draw_route(route)
-                self.add_routing(route)
-            else:
-                logger.warn("Error occured: ", er)
-                logger.warn(reply.errorString())
-                self._add_qgis_msg('route could not be retrieved')
+            self.set_destination_marker(route)
+            self.draw_route(route)
+            self.add_routing(route)
         finally:
             QtGui.QApplication.restoreOverrideCursor()
 
-    def validate_response(self, route):
-        if not validator.is_valid_route(route):
-            self._add_qgis_msg(validator.ERROR_MSGS['invalid_route'])
-            return False
-        return True
+    def handle_error(self, msg):
+        try:
+            logger.warn(msg)
+            self._add_qgis_msg(msg)
+        finally:
+            QtGui.QApplication.restoreOverrideCursor()
 
     def draw_route(self, route):
         self.reset_rubberbands()
