@@ -20,7 +20,19 @@ def has_empty_fields(*fields):
     return False
 
 
-def is_valid_coordinate(coordinate):
+def is_valid_location(location):
+    if _is_address(location):
+        return True
+    elif _is_valid_coordinate(location):
+        return True
+    return False
+
+
+def _is_address(address):
+    return bool(re.search('[a-zA-Z]', address))
+
+
+def _is_valid_coordinate(coordinate):
     return bool(COORDINATE_RX.match(coordinate))
 
 

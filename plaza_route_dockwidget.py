@@ -153,7 +153,8 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
             self._add_qgis_msg(validator.ERROR_MSGS['empty_field'])
             return False
 
-        if not validator.is_valid_coordinate(self.start_value.text()):
+        if not validator.is_valid_location(self.start_value.text()) and \
+                not not validator.is_valid_location(self.destination_value.text()):
             self._add_qgis_msg(validator.ERROR_MSGS['invalid_coordinate'])
             return False
 
