@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/plugins/PlazaRoute" >
         <file>icon.png</file>
+        <file>resources/crosshairs.png</file>
     </qresource>
 </RCC>

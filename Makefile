@@ -38,19 +38,19 @@ LOCALES =
 # translation
 SOURCES = \
 	__init__.py \
-	plaza_route.py plaza_route_dockwidget.py
+	plaza_route.py plaza_route_dockwidget.py plaza_route_service.py
 
 PLUGINNAME = PlazaRoute
 
 PY_FILES = \
 	__init__.py \
-	plaza_route.py plaza_route_dockwidget.py
+	plaza_route.py plaza_route_dockwidget.py plaza_route_service.py
 
 UI_FILES = plaza_route_dockwidget_base.ui
 
 EXTRAS = metadata.txt icon.png
 
-EXTRA_DIRS = util
+EXTRA_DIRS = util resources
 
 COMPILED_RESOURCE_FILES = resources.py
 
