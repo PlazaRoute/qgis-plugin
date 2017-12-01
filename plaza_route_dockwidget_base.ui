@@ -75,7 +75,11 @@
        </widget>
       </item>
       <item row="2" column="1">
-       <widget class="QTimeEdit" name="departure_value"/>
+       <widget class="QTimeEdit" name="departure_value">
+        <property name="displayFormat">
+         <string notr="true">HH:mm</string>
+        </property>
+       </widget>
       </item>
       <item row="3" column="0">
        <widget class="QPushButton" name="reset_btn">
