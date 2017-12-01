@@ -78,6 +78,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
+        self.reset()
         event.accept()
 
     def register_events(self):
@@ -223,9 +224,9 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
     def add_start_pedestrian_routing(self, route):
         if not route['public_transport_connection']:
-            self.routing_value.append('By foot from start to destination')
+            self.routing_value.append("Walk from start to destination")
         else:
-            self.routing_value.append(u'By foot from start to {0}\n'.format(
+            self.routing_value.append(u"Walk from start to {0}\n".format(
                 route['public_transport_connection']['path'][0]['name']))
 
     def add_public_transport_routing(self, route):
@@ -239,14 +240,14 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
                                  destination=leg['destination'],
                                  departure=leg['departure'],
                                  arrival=leg['arrival'])
-            leg_str = string.Formatter().vformat('Public transport with line {line}{platform} from {start} '
-                                                 'to {destination} at {departure} arriving at {arrival}\n', (), values)
+            leg_str = string.Formatter().vformat("Public transport with line {line}{platform} from {start} "
+                                                 "to {destination} at {departure}, arriving at {arrival}\n", (), values)
             self.routing_value.append(leg_str)
 
     def add_end_pedestrian_routing(self, route):
         if not route['public_transport_connection']:
             return
-        self.routing_value.append(u'By foot from  {0} to destination\n'.format(
+        self.routing_value.append(u"Walk from {0} to destination\n".format(
             route['public_transport_connection']['path'][-1]['destination']))
 
     def set_destination_marker(self, route):
@@ -260,7 +261,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
             last_route = 'start_walking_route'
         last_point = route[last_route]['path'][-1]
         self.canvas.scene().removeItem(self.destination_marker)
-        self.destination_marker = self.set_vertex_marker(QgsPoint(last_point[0], last_point[1]))
+        self.destination_marker = self.set_vertex_marker(QgsPoint(last_point[0], last_point[1]), RED)
 
     def reset_rubberbands(self):
         self.start_walking_rubber_band.reset(QGis.Line)
