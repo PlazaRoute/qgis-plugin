@@ -143,8 +143,9 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         start = self.start_value.text()
         destination = self.destination_value.text()
         departure = self.departure_value.text()
+        precise_public_transport_stops = self.precise_public_transport_stops_cb.isChecked()
 
-        self.plaza_route_service.get_route(start, destination, departure)
+        self.plaza_route_service.get_route(start, destination, departure, precise_public_transport_stops)
 
     def validate_routing_params(self):
         if validator.has_empty_fields(self.start_value.text(),

@@ -81,17 +81,27 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="4" column="0">
        <widget class="QPushButton" name="reset_btn">
         <property name="text">
          <string>Reset</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="4" column="1">
        <widget class="QPushButton" name="show_route_btn">
         <property name="text">
          <string>Show Route</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="2">
+       <widget class="QCheckBox" name="precise_public_transport_stops_cb">
+        <property name="toolTip">
+         <string>Use precise locations for public transport stops (slower)</string>
+        </property>
+        <property name="text">
+         <string>precise public transport stops</string>
         </property>
        </widget>
       </item>
