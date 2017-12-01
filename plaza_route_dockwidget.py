@@ -39,8 +39,10 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'plaza_ro
 
 PLAZA_ROUTING_URL = 'http://localhost:5000/api/route'
 
-RED = QtGui.QColor(255, 0, 0, 128)
-GREEN = QtGui.QColor(34, 139, 34, 128)
+LIGHT_RED = QtGui.QColor(255, 0, 0, 128)
+LIGHT_GREEN = QtGui.QColor(34, 139, 34, 128)
+GREEN = QtGui.QColor(0, 255, 0)
+RED = QtGui.QColor(255, 0, 0)
 RUBBER_BAND_WIDTH = 4
 
 
@@ -65,9 +67,9 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
         self.register_events()
 
-        self.start_walking_rubber_band = self.setup_rubber_band(QGis.Line, RED, RUBBER_BAND_WIDTH)
-        self.end_walking_rubber_band = self.setup_rubber_band(QGis.Line, RED, RUBBER_BAND_WIDTH)
-        self.public_transport_rubber_band = self.setup_rubber_band(QGis.Line, GREEN, RUBBER_BAND_WIDTH)
+        self.start_walking_rubber_band = self.setup_rubber_band(QGis.Line, LIGHT_RED, RUBBER_BAND_WIDTH)
+        self.end_walking_rubber_band = self.setup_rubber_band(QGis.Line, LIGHT_RED, RUBBER_BAND_WIDTH)
+        self.public_transport_rubber_band = self.setup_rubber_band(QGis.Line, LIGHT_GREEN, RUBBER_BAND_WIDTH)
 
     def init_gui_values(self):
         current_time = QTime()
@@ -92,9 +94,9 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         rubber_band.setWidth(width)
         return rubber_band
 
-    def set_vertex_marker(self, point):
+    def set_vertex_marker(self, point, color):
         marker = QgsVertexMarker(self.canvas)
-        marker.setColor(QtGui.QColor(0, 255, 0))
+        marker.setColor(color)
         marker.setIconSize(7)
         marker.setPenWidth(2)
         marker.setIconType(QgsVertexMarker.ICON_X)
@@ -123,11 +125,11 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         if self.active_crosshairs == 'start' and button == Qt.LeftButton:
             self.start_value.setText(coordinate)
             self.canvas.scene().removeItem(self.start_marker)
-            self.start_marker = self.set_vertex_marker(QgsPoint(point.x(), point.y()))
+            self.start_marker = self.set_vertex_marker(QgsPoint(point.x(), point.y()), GREEN)
         elif self.active_crosshairs == 'destination' or button == Qt.RightButton:
             self.destination_value.setText(coordinate)
             self.canvas.scene().removeItem(self.destination_marker)
-            self.destination_marker = self.set_vertex_marker(QgsPoint(point.x(), point.y()))
+            self.destination_marker = self.set_vertex_marker(QgsPoint(point.x(), point.y()), RED)
 
     def show_route(self):
         QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
