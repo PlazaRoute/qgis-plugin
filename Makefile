@@ -38,13 +38,15 @@ LOCALES =
 # translation
 SOURCES = \
 	__init__.py \
-	plaza_route.py plaza_route_dockwidget.py plaza_route_service.py
+	plaza_route.py plaza_route_dockwidget.py plaza_route_service.py observer.py plaza_route_context_menu.py \
+	plaza_route_route_drawer.py plaza_route_routing_generator.py
 
 PLUGINNAME = PlazaRoute
 
 PY_FILES = \
 	__init__.py \
-	plaza_route.py plaza_route_dockwidget.py plaza_route_service.py
+	plaza_route.py plaza_route_dockwidget.py plaza_route_service.py observer.py plaza_route_context_menu.py \
+	plaza_route_route_drawer.py plaza_route_routing_generator.py
 
 UI_FILES = plaza_route_dockwidget_base.ui
 

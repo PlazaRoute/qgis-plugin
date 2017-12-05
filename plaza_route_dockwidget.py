@@ -22,9 +22,6 @@
 """
 
 import os
-import json
-from collections import defaultdict
-import string
 
 from PyQt4 import QtGui, uic
 from PyQt4.QtCore import pyqtSignal, Qt, QTime
@@ -34,6 +31,10 @@ from qgis.gui import QgsRubberBand, QgsMapToolEmitPoint, QgsVertexMarker, QgsMes
 
 from util import log_helper as logger
 from util import validator as validator
+from observer import Observer
+from plaza_route_context_menu import PlazaRouteContextMenu
+from plaza_route_routing_generator import PlazaRouteRoutingGenerator
+from plaza_route_route_drawer import PlazaRouteRouteDrawer
 from plaza_route_service import PlazaRouteService
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'plaza_route_dockwidget_base.ui'))
@@ -50,33 +51,31 @@ RUBBER_BAND_WIDTH = 4
 class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
     closingPlugin = pyqtSignal()
-    active_crosshairs = 'start'
+    coordinate_source = 'start'  # start or destination
     start_marker = None
     destination_marker = None
 
     def __init__(self, iface, parent=None):
         super(PlazaRouteDockWidget, self).__init__(parent)
         self.setupUi(self)
-        self.init_gui_values()
-
         self.iface = iface
-
         self.canvas = self.iface.mapCanvas()
-        self.point_tool = QgsMapToolEmitPoint(self.canvas)
-        self.show_crosshairs()
+
+        self.context_menu = PlazaRouteContextMenu(self.canvas)
+        self.context_menu.attach(self)
+        self.canvas.setMapTool(self.context_menu)
 
         self.register_events()
 
         self.plaza_route_service = PlazaRouteService(PLAZA_ROUTING_URL, self.handle_route, self.handle_error)
+        self.routing_generator = PlazaRouteRoutingGenerator()
+        self.route_drawer = PlazaRouteRouteDrawer()
 
         self.start_walking_rubber_band = self.setup_rubber_band(QGis.Line, LIGHT_RED, RUBBER_BAND_WIDTH)
         self.end_walking_rubber_band = self.setup_rubber_band(QGis.Line, LIGHT_RED, RUBBER_BAND_WIDTH)
         self.public_transport_rubber_band = self.setup_rubber_band(QGis.Line, LIGHT_GREEN, RUBBER_BAND_WIDTH)
 
-    def init_gui_values(self):
-        current_time = QTime()
-        current_time.start()
-        self.departure_value.setTime(current_time)
+        self.reset()
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
@@ -84,54 +83,37 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         event.accept()
 
     def register_events(self):
-        self.reset_btn.clicked.connect(self.reset)
         self.start_select_btn.clicked.connect(self.select_start)
         self.destination_select_btn.clicked.connect(self.select_destination)
-        self.point_tool.canvasClicked.connect(self.display_point)
+        self.departure_refresh_btn.clicked.connect(self.refresh_departure)
+        self.reset_btn.clicked.connect(self.reset)
         self.show_route_btn.clicked.connect(self.show_route)
 
-    def setup_rubber_band(self, geometry_type, color, width):
-        rubber_band = QgsRubberBand(self.canvas, geometry_type)
-        rubber_band.setColor(color)
-        rubber_band.setWidth(width)
-        return rubber_band
+    def update(self, arg):
+        self.coordinate_source = arg['coordinate_source'] if 'coordinate_source' in arg else self.coordinate_source
+        self.set_coordinate(arg['coordinate'], self.coordinate_source)
 
-    def set_vertex_marker(self, point, color):
-        marker = QgsVertexMarker(self.canvas)
-        marker.setColor(color)
-        marker.setIconSize(7)
-        marker.setPenWidth(2)
-        marker.setIconType(QgsVertexMarker.ICON_X)
-        marker.setCenter(point)
-        return marker
-
-    def reset(self):
-        self.reset_rubberbands()
-        self.canvas.scene().removeItem(self.start_marker)
-        self.canvas.scene().removeItem(self.destination_marker)
-        self.routing_value.clear()
-
-    def select_start(self):
-        self.active_crosshairs = 'start'
-        self.show_crosshairs()
-
-    def select_destination(self):
-        self.active_crosshairs = 'destination'
-        self.show_crosshairs()
-
-    def show_crosshairs(self):
-        self.canvas.setMapTool(self.point_tool)
-
-    def display_point(self, point, button):
+    def set_coordinate(self, point, source):
         coordinate = "{}, {}".format(point.x(), point.y())
-        if self.active_crosshairs == 'start' and button == Qt.LeftButton:
+        if source == 'start':
             self.start_value.setText(coordinate)
             self.canvas.scene().removeItem(self.start_marker)
-            self.start_marker = self.set_vertex_marker(QgsPoint(point.x(), point.y()), GREEN)
-        elif self.active_crosshairs == 'destination' or button == Qt.RightButton:
+            self.start_marker = self.set_vertex_marker(point, GREEN)
+        elif source == 'destination':
             self.destination_value.setText(coordinate)
             self.canvas.scene().removeItem(self.destination_marker)
-            self.destination_marker = self.set_vertex_marker(QgsPoint(point.x(), point.y()), RED)
+            self.destination_marker = self.set_vertex_marker(point, RED)
+
+    def select_start(self):
+        self.coordinate_source = 'start'
+
+    def select_destination(self):
+        self.coordinate_source = 'destination'
+
+    def refresh_departure(self):
+        current_time = QTime()
+        current_time.start()
+        self.departure_value.setTime(current_time)
 
     def show_route(self):
         QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -167,9 +149,9 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
     def handle_route(self, route):
         try:
-            self.set_destination_marker(route)
             self.draw_route(route)
             self.add_routing(route)
+            self.update_route_markers(route)
         finally:
             QtGui.QApplication.restoreOverrideCursor()
 
@@ -181,80 +163,64 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
             QtGui.QApplication.restoreOverrideCursor()
 
     def draw_route(self, route):
-        self.reset_rubberbands()
+        self.reset_rubber_bands()
 
-        self.draw_walking_route(route['start_walking_route'], self.start_walking_rubber_band)
-        self.draw_public_transport_connection(route['public_transport_connection'], self.public_transport_rubber_band)
-        self.draw_walking_route(route['end_walking_route'], self.end_walking_rubber_band)
-
-    def draw_walking_route(self, route, rubber_band):
-        if not route:
-            return  # end walking route is optional
-
-        for point in route['path']:
-            rubber_band.addPoint(QgsPoint(point[0], point[1]))
-
-    def draw_public_transport_connection(self, route, rubber_band):
-        if not route:  # public transport route is optional
-            return  # public transport route is optional
-
-        for leg in route['path']:
-            rubber_band.addPoint(QgsPoint(leg['start_position'][0], leg['start_position'][1]))
-            for stopover in leg['stopovers']:
-                rubber_band.addPoint(QgsPoint(stopover[0], stopover[1]))
-            rubber_band.addPoint(QgsPoint(leg['exit_position'][0], leg['exit_position'][1]))
+        self.route_drawer.draw_walking_route(route['start_walking_route'], self.start_walking_rubber_band)
+        self.route_drawer.draw_public_transport_connection(route['public_transport_connection'],
+                                                           self.public_transport_rubber_band)
+        self.route_drawer.draw_walking_route(route['end_walking_route'], self.end_walking_rubber_band)
 
     def add_routing(self, route):
         self.routing_value.clear()
-        self.add_start_pedestrian_routing(route)
-        self.add_public_transport_routing(route)
-        self.add_end_pedestrian_routing(route)
+        self.routing_value.append(''.join(self.routing_generator.generate_routing(route)))
 
-    def add_start_pedestrian_routing(self, route):
-        if not route['public_transport_connection']:
-            self.routing_value.append("Walk from start to destination")
-        else:
-            self.routing_value.append(u"Walk from start to {0}\n".format(
-                route['public_transport_connection']['path'][0]['name']))
-
-    def add_public_transport_routing(self, route):
-        if not route['public_transport_connection']:
-            return
-        for leg in route['public_transport_connection']['path']:
-            values = defaultdict(str,
-                                 line=leg['line'],
-                                 platform=' on platform {0}'.format(leg['track']) if leg['track'] else '',
-                                 start=leg['name'],
-                                 destination=leg['destination'],
-                                 departure=leg['departure'],
-                                 arrival=leg['arrival'])
-            leg_str = string.Formatter().vformat("Public transport with line {line}{platform} from {start} "
-                                                 "to {destination} at {departure}, arriving at {arrival}\n", (), values)
-            self.routing_value.append(leg_str)
-
-    def add_end_pedestrian_routing(self, route):
-        if not route['public_transport_connection']:
-            return
-        self.routing_value.append(u"Walk from {0} to destination\n".format(
-            route['public_transport_connection']['path'][-1]['destination']))
-
-    def set_destination_marker(self, route):
-        """
-        Sets the destination marker.
-        It's still necessary to set it, if the users provides an address as a destination.
-        """
+    def update_route_markers(self, route):
+        """ sets the start and destination marker based on the returned route """
+        first_route = 'start_walking_route'
         last_route = 'end_walking_route'
         if not route[last_route]:
             # just a start walking route was provided
-            last_route = 'start_walking_route'
+            last_route = first_route
+        first_point = route[first_route]['path'][0]
         last_point = route[last_route]['path'][-1]
-        self.canvas.scene().removeItem(self.destination_marker)
+        self.reset_vertex_marker()
+        self.start_marker = self.set_vertex_marker(QgsPoint(first_point[0], first_point[1]), GREEN)
         self.destination_marker = self.set_vertex_marker(QgsPoint(last_point[0], last_point[1]), RED)
 
-    def reset_rubberbands(self):
+    def reset(self):
+        self.reset_rubber_bands()
+        self.refresh_departure()
+        self.reset_vertex_marker()
+        self.start_value.clear()
+        self.destination_value.clear()
+        self.routing_value.clear()
+
+    def set_vertex_marker(self, point, color):
+        marker = QgsVertexMarker(self.canvas)
+        marker.setColor(color)
+        marker.setIconSize(7)
+        marker.setPenWidth(2)
+        marker.setIconType(QgsVertexMarker.ICON_X)
+        marker.setCenter(point)
+        return marker
+
+    def reset_vertex_marker(self):
+        self.canvas.scene().removeItem(self.start_marker)
+        self.canvas.scene().removeItem(self.destination_marker)
+
+    def setup_rubber_band(self, geometry_type, color, width):
+        rubber_band = QgsRubberBand(self.canvas, geometry_type)
+        rubber_band.setColor(color)
+        rubber_band.setWidth(width)
+        return rubber_band
+
+    def reset_rubber_bands(self):
         self.start_walking_rubber_band.reset(QGis.Line)
         self.public_transport_rubber_band.reset(QGis.Line)
         self.end_walking_rubber_band.reset(QGis.Line)
 
     def _add_qgis_msg(self, msg, level=QgsMessageBar.CRITICAL):
         self.iface.messageBar().pushMessage('Error', msg, level=level)
+
+
+Observer.register(PlazaRouteDockWidget)
