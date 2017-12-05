@@ -1,5 +1,6 @@
 from collections import defaultdict
 import string
+from datetime import datetime
 
 
 class PlazaRouteRoutingGenerator:
@@ -12,6 +13,7 @@ class PlazaRouteRoutingGenerator:
         routing.extend(self._generate_start_pedestrian_routing(route))
         routing.extend(self._generate_public_transport_routing(route))
         routing.extend(self._generate_end_pedestrian_routing(route))
+        routing.extend(self._generate_routing_date())
         return routing
 
     def _generate_start_pedestrian_routing(self, route):
@@ -50,5 +52,8 @@ class PlazaRouteRoutingGenerator:
             route['public_transport_connection']['path'][-1]['destination']))
         return routing
 
+    def _generate_routing_date(self):
+        return u"Routing generated on {:%Y-%m-%d %H:%M:%S}".format(datetime.now())
+
     def _generate_line_break(self):
-        return "\n\n"
+        return u"\n\n"
