@@ -109,9 +109,11 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
     def select_start(self):
         self.coordinate_source = 'start'
+        self.canvas.setMapTool(self.context_menu)
 
     def select_destination(self):
         self.coordinate_source = 'destination'
+        self.canvas.setMapTool(self.context_menu)
 
     def refresh_departure(self):
         current_time = QTime()
