@@ -74,10 +74,13 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QTimeEdit" name="departure_value">
-        <property name="displayFormat">
-         <string notr="true">HH:mm</string>
+      <item row="3" column="0" colspan="2">
+       <widget class="QCheckBox" name="precise_public_transport_stops_cb">
+        <property name="toolTip">
+         <string>Use precise locations for public transport stops (slower)</string>
+        </property>
+        <property name="text">
+         <string>precise public transport stops</string>
         </property>
        </widget>
       </item>
@@ -95,15 +98,27 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0" colspan="2">
-       <widget class="QCheckBox" name="precise_public_transport_stops_cb">
-        <property name="toolTip">
-         <string>Use precise locations for public transport stops (slower)</string>
-        </property>
-        <property name="text">
-         <string>precise public transport stops</string>
-        </property>
-       </widget>
+      <item row="2" column="1">
+       <layout class="QHBoxLayout" name="departure_value_layout">
+        <item>
+         <widget class="QTimeEdit" name="departure_value">
+          <property name="displayFormat">
+           <string notr="true">HH:mm</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QToolButton" name="departure_refresh_btn">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="icon">
+           <iconset>
+            <normaloff>:/plugins/PlazaRoute/resources/refresh.png</normaloff>:/plugins/PlazaRoute/resources/refresh.png</iconset>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>
