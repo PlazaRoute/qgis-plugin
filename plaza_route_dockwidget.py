@@ -41,8 +41,6 @@ from plaza_route_service import PlazaRouteService
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'plaza_route_dockwidget_base.ui'))
 
-PLAZA_ROUTING_URL = 'http://localhost:5000/api/route'
-
 LIGHT_RED = QtGui.QColor(255, 0, 0, 128)
 LIGHT_GREEN = QtGui.QColor(34, 139, 34, 128)
 GREEN = QtGui.QColor(0, 255, 0)
@@ -69,7 +67,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
         self.register_events()
 
-        self.plaza_route_service = PlazaRouteService(PLAZA_ROUTING_URL, self.handle_route, self.handle_error)
+        self.plaza_route_service = PlazaRouteService(self.handle_route, self.handle_error)
         self.routing_generator = PlazaRouteRoutingGenerator()
         self.point_transformer = PointTransformer(self.iface)
         self.route_drawer = PlazaRouteRouteDrawer(self.point_transformer)
