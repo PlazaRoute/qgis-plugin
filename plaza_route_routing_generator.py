@@ -48,8 +48,9 @@ class PlazaRouteRoutingGenerator:
         routing = list()
         if not route['public_transport_connection']:
             return routing
-        routing.append(u"Walk from {0} to destination\n".format(
+        routing.append(u"Walk from {0} to destination".format(
             route['public_transport_connection']['path'][-1]['destination']))
+        routing.append(self._generate_line_break())
         return routing
 
     def _generate_routing_date(self):

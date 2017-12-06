@@ -22,15 +22,17 @@
 """
 
 import os
+from ast import literal_eval
 
 from PyQt4 import QtGui, uic
 from PyQt4.QtCore import pyqtSignal, Qt, QTime
 
-from qgis.core import QGis, QgsPoint
-from qgis.gui import QgsRubberBand, QgsMapToolEmitPoint, QgsVertexMarker, QgsMessageBar
+from qgis.core import QGis, QgsPoint, QgsCoordinateTransform, QgsCoordinateReferenceSystem
+from qgis.gui import QgsRubberBand, QgsVertexMarker, QgsMessageBar
 
 from util import log_helper as logger
 from util import validator as validator
+from util.point_transformer import PointTransformer
 from observer import Observer
 from plaza_route_context_menu import PlazaRouteContextMenu
 from plaza_route_routing_generator import PlazaRouteRoutingGenerator
@@ -69,7 +71,8 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
         self.plaza_route_service = PlazaRouteService(PLAZA_ROUTING_URL, self.handle_route, self.handle_error)
         self.routing_generator = PlazaRouteRoutingGenerator()
-        self.route_drawer = PlazaRouteRouteDrawer()
+        self.point_transformer = PointTransformer(self.iface)
+        self.route_drawer = PlazaRouteRouteDrawer(self.point_transformer)
 
         self.start_walking_rubber_band = self.setup_rubber_band(QGis.Line, LIGHT_RED, RUBBER_BAND_WIDTH)
         self.end_walking_rubber_band = self.setup_rubber_band(QGis.Line, LIGHT_RED, RUBBER_BAND_WIDTH)
@@ -122,8 +125,18 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
             QtGui.QApplication.restoreOverrideCursor()
             return
 
-        start = self.start_value.text()
-        destination = self.destination_value.text()
+        if validator.is_address(self.start_value.text()):
+            start = self.start_value.text()
+        else:
+            start = self.point_transformer.transform_project_to_base_crs_str(
+                self.point_transformer.str_to_point(self.start_value.text()))
+
+        if validator.is_address(self.destination_value.text()):
+            destination = self.destination_value.text()
+        else:
+            destination = self.point_transformer.transform_project_to_base_crs_str(
+                self.point_transformer.str_to_point(self.destination_value.text()))
+
         departure = self.departure_value.text()
         precise_public_transport_stops = self.precise_public_transport_stops_cb.isChecked()
 
@@ -136,8 +149,8 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
             self._add_qgis_msg(validator.ERROR_MSGS['empty_field'])
             return False
 
-        if not validator.is_valid_location(self.start_value.text()) and \
-                not not validator.is_valid_location(self.destination_value.text()):
+        if not self.validate_project_coordinate(self.start_value.text()) or \
+                not self.validate_project_coordinate(self.destination_value.text()):
             self._add_qgis_msg(validator.ERROR_MSGS['invalid_coordinate'])
             return False
 
@@ -145,6 +158,16 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
             self._add_qgis_msg(validator.ERROR_MSGS['invalid_departure'])
             return False
 
+        return True
+
+    def validate_project_coordinate(self, coordinate):
+        if validator.is_address(coordinate):
+            return True
+        else:
+            transformed_coordinate = self.point_transformer.transform_project_to_base_crs_str(
+                self.point_transformer.str_to_point(coordinate))
+            if not validator.is_valid_coordinate(transformed_coordinate):
+                return False
         return True
 
     def handle_route(self, route):
@@ -184,8 +207,10 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         first_point = route[first_route]['path'][0]
         last_point = route[last_route]['path'][-1]
         self.reset_vertex_marker()
-        self.start_marker = self.set_vertex_marker(QgsPoint(first_point[0], first_point[1]), GREEN)
-        self.destination_marker = self.set_vertex_marker(QgsPoint(last_point[0], last_point[1]), RED)
+        self.start_marker = self.set_vertex_marker(
+            self.point_transformer.transform_base_to_project_crs(QgsPoint(first_point[0], first_point[1])), GREEN)
+        self.destination_marker = self.set_vertex_marker(
+            self.point_transformer.transform_base_to_project_crs(QgsPoint(last_point[0], last_point[1])), RED)
 
     def reset(self):
         self.reset_rubber_bands()
