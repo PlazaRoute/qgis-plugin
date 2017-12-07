@@ -14,7 +14,7 @@ class PlazaRouteRoutingGenerator:
         routing.extend(self._generate_public_transport_routing(route))
         routing.extend(self._generate_end_pedestrian_routing(route))
         routing.extend(self._generate_routing_date())
-        return routing
+        return ''.join(routing)
 
     def _generate_start_pedestrian_routing(self, route):
         routing = list()

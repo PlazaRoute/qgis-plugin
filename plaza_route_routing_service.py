@@ -8,7 +8,7 @@ from util import log_helper as logger
 from util import validator as validator
 
 
-class PlazaRouteService:
+class PlazaRouteRoutingService:
 
     def __init__(self, route_handler, error_handler):
         self.plaza_routing_url = config.plaza_routing["url"]
