@@ -2,14 +2,16 @@ import json
 from PyQt4 import QtNetwork
 from PyQt4.QtCore import QUrl
 
+
+import config
 from util import log_helper as logger
 from util import validator as validator
 
 
-class PlazaRouteService:
+class PlazaRouteRoutingService:
 
-    def __init__(self, plaza_routing_url, route_handler, error_handler):
-        self.plaza_routing_url = plaza_routing_url
+    def __init__(self, route_handler, error_handler):
+        self.plaza_routing_url = config.plaza_routing["url"]
         self.route_handler = route_handler
         self.error_handler = error_handler
         self.network_access_manager = QtNetwork.QNetworkAccessManager()

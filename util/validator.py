@@ -24,6 +24,17 @@ def is_address(address):
     return bool(re.search('[a-zA-Z]', address))
 
 
+def is_valid_project_coordinate(coordinate, point_transformer):
+    if is_address(coordinate):
+        return True
+    else:
+        transformed_coordinate = point_transformer.transform_project_to_base_crs_str(
+            point_transformer.str_to_point(coordinate))
+        if not is_valid_coordinate(transformed_coordinate):
+            return False
+    return True
+
+
 def is_valid_coordinate(coordinate):
     return bool(COORDINATE_RX.match(coordinate))
 

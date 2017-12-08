@@ -13,8 +13,8 @@ class PlazaRouteRouteDrawer:
             self._add_point(QgsPoint(point[0], point[1]), rubber_band)
 
     def draw_public_transport_connection(self, route, rubber_band):
-        if not route:  # public transport route is optional
-            return  # public transport route is optional
+        if not route:  # public transport connection is optional
+            return  # public transport connection is optional
 
         for leg in route['path']:
             self._add_point(QgsPoint(leg['start_position'][0], leg['start_position'][1]), rubber_band)
