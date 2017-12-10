@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 from PyQt4 import QtNetwork
 from PyQt4.QtCore import QUrl
