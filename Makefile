@@ -34,13 +34,6 @@ LOCALES =
 #LRELEASE = lrelease
 #LRELEASE = lrelease-qt4
 
-
-# translation
-SOURCES = \
-	__init__.py \
-	plaza_route.py plaza_route_dockwidget.py plaza_route_routing_service.py observer.py plaza_route_map_tool.py \
-	plaza_route_route_drawer.py plaza_route_routing_generator.py config.py
-
 PLUGINNAME = PlazaRoute
 
 PY_FILES = \
@@ -63,8 +56,6 @@ PEP8EXCLUDE=pydev,resources.py,conf.py,third_party,ui
 # Normally you would not need to edit below here
 #################################################
 
-HELP = help/build/html
-
 RESOURCE_SRC=$(shell grep '^ *<file' resources.qrc | sed 's@</file>@@g;s/.*>//g' | tr '\n' ' ')
 
 QGISDIR=.qgis2
@@ -79,7 +70,7 @@ compile: $(COMPILED_RESOURCE_FILES)
 %.qm : %.ts
 	$(LRELEASE) $<
 
-deploy: compile doc
+deploy: compile
 	@echo
 	@echo "------------------------------------------"
 	@echo "Deploying plugin to your .qgis2 directory."
@@ -92,7 +83,6 @@ deploy: compile doc
 	cp -vf $(UI_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(COMPILED_RESOURCE_FILES) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
 	cp -vf $(EXTRAS) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)
-	cp -vfr $(HELP) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/help
 	# Copy extra directories if any
 	$(foreach var,$(EXTRA_DIRS),cp -vfr $(var) $(HOME)/$(QGISDIR)/python/plugins/$(PLUGINNAME)/;)
 
@@ -130,11 +120,3 @@ clean:
 	@echo "Removing uic and rcc generated files"
 	@echo "------------------------------------"
 	rm $(COMPILED_UI_FILES) $(COMPILED_RESOURCE_FILES)
-
-doc:
-	@echo
-	@echo "------------------------------------"
-	@echo "Building documentation using sphinx."
-	@echo "------------------------------------"
-	cd help; make html
-
