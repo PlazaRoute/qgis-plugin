@@ -22,7 +22,7 @@ class PlazaRouteRoutingGenerator:
             routing.append("Walk from start to destination")
         else:
             routing.append(u"Walk from start to {0}".format(
-                route['public_transport_connection']['path'][0]['name']))
+                route['public_transport_connection']['path'][0]['start']))
         routing.append(self._generate_line_break())
         return routing
 
