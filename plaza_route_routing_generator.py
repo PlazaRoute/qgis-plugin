@@ -34,7 +34,7 @@ class PlazaRouteRoutingGenerator:
             values = defaultdict(str,
                                  line=leg['line'],
                                  platform=' on platform {0}'.format(leg['track']) if leg['track'] else '',
-                                 start=leg['name'],
+                                 start=leg['start'],
                                  destination=leg['destination'],
                                  departure=leg['departure'],
                                  arrival=leg['arrival'])
