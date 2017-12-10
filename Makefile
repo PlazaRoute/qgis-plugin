@@ -124,6 +124,13 @@ zip: deploy dclean
 	rm -f $(PLUGINNAME).zip
 	cd $(HOME)/$(QGISDIR)/python/plugins; zip -9r $(CURDIR)/$(PLUGINNAME).zip $(PLUGINNAME)
 
+clean:
+	@echo
+	@echo "------------------------------------"
+	@echo "Removing uic and rcc generated files"
+	@echo "------------------------------------"
+	rm $(COMPILED_UI_FILES) $(COMPILED_RESOURCE_FILES)
+
 doc:
 	@echo
 	@echo "------------------------------------"
