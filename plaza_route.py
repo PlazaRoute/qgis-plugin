@@ -67,13 +67,11 @@ class PlazaRoute:
         self.pluginIsActive = False
         self.dockwidget = None
 
-    # noinspection PyMethodMayBeStatic
     def tr(self, message):
         """
         Get the translation for a string using Qt translation API.
         We implement this ourselves since we do not inherit QObject.
         """
-        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('PlazaRoute', message)
 
     def add_action(
