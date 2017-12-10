@@ -59,10 +59,8 @@ class PlazaRoute:
             if qVersion() > '4.3.3':
                 QCoreApplication.installTranslator(self.translator)
 
-        # Declare instance attributes
         self.actions = []
         self.menu = self.tr(u'&PlazaRoute')
-        # TODO: We are going to let the user set this up in a future iteration
         self.toolbar = self.iface.addToolBar(u'PlazaRoute')
         self.toolbar.setObjectName(u'PlazaRoute')
 
@@ -127,13 +125,6 @@ class PlazaRoute:
         """ Cleanup necessary items here when plugin dockwidget is closed"""
 
         self.dockwidget.closingPlugin.disconnect(self.onClosePlugin)
-
-        # remove this statement if dockwidget is to remain
-        # for reuse if plugin is reopened
-        # Commented next statement since it causes QGIS crash
-        # when closing the docked window:
-        # self.dockwidget = None
-
         self.pluginIsActive = False
 
     def unload(self):
@@ -156,7 +147,6 @@ class PlazaRoute:
 
             self.dockwidget.closingPlugin.connect(self.onClosePlugin)
 
-            # TODO: fix to allow choice of dock location
             self.iface.addDockWidget(Qt.RightDockWidgetArea, self.dockwidget)
             self.dockwidget.show()
 
