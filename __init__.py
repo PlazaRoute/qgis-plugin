@@ -23,13 +23,12 @@
 """
 
 
-# noinspection PyPep8Naming
-def classFactory(iface):  # pylint: disable=invalid-name
+def classFactory(iface):
     """Load PlazaRoute class from file PlazaRoute.
 
     :param iface: A QGIS interface instance.
     :type iface: QgsInterface
     """
-    #
+
     from .plaza_route import PlazaRoute
     return PlazaRoute(iface)
