@@ -14,7 +14,7 @@ version=0.1
 author=Jonas Matter / Robin Suter
 email=robin@robinsuter.ch
 
-about=Pedestrian and Public Transport Routing, with support for routing through public areas (plazas)
+about=Pedestrian and Public Transport Routing, with support for routing through public areas (plazas). The plugin is using https://github.com/PlazaRoute/plazaroute as a backend in combination with https://fahrplan.search.ch/ for the public transport routing, https://nominatim.openstreetmap.org/ for the geocoding and https://www.graphhopper.com/ for the routing.
 
 tracker=https://github.com/PlazaRoute/PlazaRoute-qgis
 repository=https://github.com/PlazaRoute/PlazaRoute-qgis
@@ -26,7 +26,7 @@ repository=https://github.com/PlazaRoute/PlazaRoute-qgis
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=routing, web
+tags=routing, web, api, geocoding, osm, openstreetmap, webservice
 
 homepage=https://github.com/PlazaRoute/PlazaRoute-qgis
 category=Plugins
