@@ -25,6 +25,7 @@ class PlazaRouteMapTool(QgsMapTool):
     def __init__(self, iface, point_transformer):
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
+        self.base_cursor = QtGui.QCursor()
         QgsMapTool.__init__(self, self.canvas)
 
         self.observers = set()
@@ -36,6 +37,11 @@ class PlazaRouteMapTool(QgsMapTool):
         self.start_walking_rubber_band = self._setup_rubber_band(QGis.Line, LIGHT_RED, RUBBER_BAND_WIDTH)
         self.end_walking_rubber_band = self._setup_rubber_band(QGis.Line, LIGHT_RED, RUBBER_BAND_WIDTH)
         self.public_transport_rubber_band = self._setup_rubber_band(QGis.Line, LIGHT_GREEN, RUBBER_BAND_WIDTH)
+
+        self.setCursor(self.base_cursor)
+
+    def activate(self):
+        self.canvas.setCursor(self.base_cursor)
 
     def attach(self, observer):
         self.observers.add(observer)
@@ -92,22 +98,42 @@ class PlazaRouteMapTool(QgsMapTool):
 
     def _set_start_coordinate_action(self):
         self.coordinate_source = 'start'
-        self._notify_context_menu_selection()
+        self._handle_context_menu_action()
 
     def _set_destination_coordinate_action(self):
         self.coordinate_source = 'destination'
+        self._handle_context_menu_action()
+
+    def _handle_context_menu_action(self):
         self._notify_context_menu_selection()
+        self._notify_deactivate_crosshairs()
+        self.canvas.setCursor(self.base_cursor)
 
     def _notify_context_menu_selection(self):
         arg = {
-            'coordinate_source': self.coordinate_source,
-            'coordinate': self.coordinate
+            'type': 'coordinate_update',
+            'value': {
+                'coordinate_source': self.coordinate_source,
+                'coordinate': self.coordinate
+            }
         }
         self._notify(arg)
 
     def _notify_canvas_click(self):
         arg = {
-            'coordinate': self.coordinate
+            'type': 'coordinate_update',
+            'value': {
+                'coordinate': self.coordinate
+            }
+        }
+        self._notify(arg)
+
+    def _notify_deactivate_crosshairs(self):
+        arg = {
+            'type': 'map_tool_event',
+            'value': {
+                'event': 'deactivate_crosshairs'
+            }
         }
         self._notify(arg)
 
