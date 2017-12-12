@@ -130,14 +130,14 @@
      </widget>
     </item>
     <item row="2" column="0">
-     <widget class="QLabel" name="routing_label">
+     <widget class="QLabel" name="direction_label">
       <property name="text">
-       <string>Routing</string>
+       <string>Directions</string>
       </property>
      </widget>
     </item>
     <item row="3" column="0">
-     <widget class="QTextEdit" name="routing_value">
+     <widget class="QTextEdit" name="direction_value">
       <property name="enabled">
        <bool>true</bool>
       </property>

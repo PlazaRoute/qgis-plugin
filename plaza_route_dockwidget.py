@@ -32,7 +32,7 @@ from util import validator as validator
 from util.point_transformer import PointTransformer
 from observer import Observer
 from plaza_route_map_tool import PlazaRouteMapTool
-from plaza_route_routing_generator import PlazaRouteRoutingGenerator
+from plaza_route_directions_generator import PlazaRouteDirectionsGenerator
 from plaza_route_routing_service import PlazaRouteRoutingService
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'plaza_route_dockwidget_base.ui'))
@@ -50,7 +50,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.cross_cursor = QtGui.QCursor(Qt.CrossCursor)
 
         self.plaza_route_routing_service = PlazaRouteRoutingService(self._handle_route, self._handle_error)
-        self.routing_generator = PlazaRouteRoutingGenerator()
+        self.routing_generator = PlazaRouteDirectionsGenerator()
         self.point_transformer = PointTransformer(self.iface)
 
         self.map_tool = PlazaRouteMapTool(self.iface, self.point_transformer)
@@ -138,8 +138,8 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
             QtGui.QApplication.restoreOverrideCursor()
 
     def _add_routing(self, route):
-        self.routing_value.clear()
-        self.routing_value.append(self.routing_generator.generate_routing(route))
+        self.direction_value.clear()
+        self.direction_value.append(self.routing_generator.generate_directions(route))
 
     def _set_coordinate(self, point, source):
         if not source:
@@ -173,7 +173,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self._refresh_departure()
         self.start_value.clear()
         self.destination_value.clear()
-        self.routing_value.clear()
+        self.direction_value.clear()
 
     def _add_qgis_msg(self, msg, level=QgsMessageBar.CRITICAL):
         self.iface.messageBar().pushMessage('Error', msg, level=level)
