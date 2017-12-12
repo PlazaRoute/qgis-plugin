@@ -16,8 +16,8 @@ email=robin@robinsuter.ch
 
 about=Pedestrian and Public Transport Routing, with support for routing through public areas (plazas)
 
-tracker=https://github.com/PlazaRoute/PlazaRoute-qgis
-repository=https://github.com/PlazaRoute/PlazaRoute-qgis
+tracker=https://github.com/PlazaRoute/qgis/issues
+repository=https://github.com/PlazaRoute/qgis
 # End of mandatory metadata
 
 # Recommended items:
@@ -28,7 +28,7 @@ repository=https://github.com/PlazaRoute/PlazaRoute-qgis
 # Tags are comma separated with spaces allowed
 tags=routing, web
 
-homepage=https://github.com/PlazaRoute/PlazaRoute-qgis
+homepage=https://github.com/PlazaRoute/qgis/blob/master/README.md
 category=Plugins
 icon=icon.png
 # experimental flag
