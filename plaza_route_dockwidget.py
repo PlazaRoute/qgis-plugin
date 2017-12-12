@@ -28,12 +28,11 @@ from PyQt4.QtCore import pyqtSignal, Qt, QTime
 
 from qgis.gui import QgsMessageBar
 
-from util import log_helper as logger
 from util import validator as validator
 from util.point_transformer import PointTransformer
 from observer import Observer
 from plaza_route_map_tool import PlazaRouteMapTool
-from plaza_route_routing_generator import PlazaRouteRoutingGenerator
+from plaza_route_directions_generator import PlazaRouteDirectionsGenerator
 from plaza_route_routing_service import PlazaRouteRoutingService
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'plaza_route_dockwidget_base.ui'))
@@ -41,16 +40,17 @@ FORM_CLASS, _ = uic.loadUiType(os.path.join(os.path.dirname(__file__), 'plaza_ro
 
 class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
     closingPlugin = pyqtSignal()
-    coordinate_source = 'start'  # start or destination
+    coordinate_source = None  # start or destination
 
     def __init__(self, iface, parent=None):
         super(PlazaRouteDockWidget, self).__init__(parent)
         self.setupUi(self)
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
+        self.cross_cursor = QtGui.QCursor(Qt.CrossCursor)
 
         self.plaza_route_routing_service = PlazaRouteRoutingService(self._handle_route, self._handle_error)
-        self.routing_generator = PlazaRouteRoutingGenerator()
+        self.routing_generator = PlazaRouteDirectionsGenerator()
         self.point_transformer = PointTransformer(self.iface)
 
         self.map_tool = PlazaRouteMapTool(self.iface, self.point_transformer)
@@ -66,8 +66,14 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         event.accept()
 
     def update(self, arg):
-        self.coordinate_source = arg['coordinate_source'] if 'coordinate_source' in arg else self.coordinate_source
-        self._set_coordinate(arg['coordinate'], self.coordinate_source)
+        update_type = arg['type']
+        value = arg['value']
+        if update_type == 'coordinate_update':
+            self.coordinate_source = \
+                value['coordinate_source'] if 'coordinate_source' in value else self.coordinate_source
+            self._set_coordinate(value['coordinate'], self.coordinate_source)
+        elif update_type == 'map_tool_event':
+            self.coordinate_source = None
 
     def _register_events(self):
         self.start_select_btn.clicked.connect(self._select_start)
@@ -127,16 +133,17 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
     def _handle_error(self, msg):
         try:
-            logger.warn(msg)
             self._add_qgis_msg(msg)
         finally:
             QtGui.QApplication.restoreOverrideCursor()
 
     def _add_routing(self, route):
-        self.routing_value.clear()
-        self.routing_value.append(self.routing_generator.generate_routing(route))
+        self.direction_value.clear()
+        self.direction_value.append(self.routing_generator.generate_directions(route))
 
     def _set_coordinate(self, point, source):
+        if not source:
+            return
         coordinate = "{}, {}".format(point.x(), point.y())
         if source == 'start':
             self.start_value.setText(coordinate)
@@ -146,11 +153,15 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
     def _select_start(self):
         self.coordinate_source = 'start'
-        self.canvas.setMapTool(self.map_tool)
+        self._handle_crosshairs_selection()
 
     def _select_destination(self):
         self.coordinate_source = 'destination'
+        self._handle_crosshairs_selection()
+
+    def _handle_crosshairs_selection(self):
         self.canvas.setMapTool(self.map_tool)
+        self.canvas.setCursor(self.cross_cursor)
 
     def _refresh_departure(self):
         current_time = QTime()
@@ -162,7 +173,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self._refresh_departure()
         self.start_value.clear()
         self.destination_value.clear()
-        self.routing_value.clear()
+        self.direction_value.clear()
 
     def _add_qgis_msg(self, msg, level=QgsMessageBar.CRITICAL):
         self.iface.messageBar().pushMessage('Error', msg, level=level)
