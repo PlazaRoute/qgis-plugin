@@ -32,18 +32,33 @@ class PlazaRouteRoutingService:
 
     def handle_response(self, reply):
         er = reply.error()
-
         try:
             if er == QtNetwork.QNetworkReply.NoError:
                 bytes_string = reply.readAll()
                 route = json.loads(str(bytes_string))
                 if not validator.is_valid_route(route):
-                    self.error_handler(validator.ERROR_MSGS['invalid_route'])
+                    self.error_handler(validator.ERROR_MSGS["invalid_route"])
                     return
                 self.route_handler(route)
             else:
-                logger.warn("Error occured: ", er)
-                logger.warn(reply.errorString())
-                self.error_handler("route could not be retrieved")
+                self._handle_response_error(reply)
         except Exception as ex:
-            self.error_handler(ex)
+            logger.warn(str(ex))
+            self.error_handler("unknown error occurred during retrieving the route, see log for more details")
+
+    def _handle_response_error(self, reply):
+        error_code = reply.error()
+        log_msg = None
+        if error_code == QtNetwork.QNetworkReply.ConnectionRefusedError:
+            error_msg = 'server at {} is unavailable, make sure that the right server url was configured' \
+                .format(self.plaza_routing_url)
+        elif error_code == QtNetwork.QNetworkReply.UnknownContentError:
+            error_msg = "third party service is temporarily unavailable " \
+                        "or the server rejected the provided parameters"
+        else:
+            log_msg = "unknown error with code {0} occurred: {1}".format(error_code, reply.errorString())
+            error_msg = "route could not be retrieved, see log for more details"
+        if error_msg:
+            logger.warn(error_msg if not log_msg else log_msg)
+            self.error_handler(error_msg)
+
