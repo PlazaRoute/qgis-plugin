@@ -1,7 +1,7 @@
 <RCC>
   <qresource prefix="/plugins/PlazaRoute">
-    <file>resources/refresh.png</file>
+    <file>icons/refresh.png</file>
+    <file>icons/crosshairs.png</file>
     <file>icon.png</file>
-    <file>resources/crosshairs.png</file>
   </qresource>
 </RCC>
