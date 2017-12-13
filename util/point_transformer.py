@@ -8,7 +8,7 @@ class PointTransformer:
 
     def __init__(self, iface):
         self.iface = iface
-        self.project_crs_id = self.iface.mapCanvas().mapRenderer().destinationCrs().postgisSrid()
+        self.project_crs_id = self.iface.mapCanvas().mapSettings().destinationCrs().postgisSrid()
         self.project_crs = QgsCoordinateReferenceSystem(self.project_crs_id)
         self.base_crs = QgsCoordinateReferenceSystem(4326)  # WGS 84
         self.transformer = QgsCoordinateTransform(self.project_crs, self.base_crs)
@@ -41,7 +41,7 @@ class PointTransformer:
 
     def _update_transformer(self):
         """ checks if the project crs has changed in the meantime and updates the project crs if it has """
-        new_project_crs_id = self.iface.mapCanvas().mapRenderer().destinationCrs()
+        new_project_crs_id = self.iface.mapCanvas().mapSettings().destinationCrs()
         if new_project_crs_id != self.project_crs_id:
             self.project_crs_id = new_project_crs_id
             self.project_crs = QgsCoordinateReferenceSystem(self.project_crs_id)

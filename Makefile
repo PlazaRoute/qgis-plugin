@@ -45,7 +45,7 @@ UI_FILES = plaza_route_dockwidget_base.ui
 
 EXTRAS = metadata.txt icon.png
 
-EXTRA_DIRS = util resources
+EXTRA_DIRS = util icons
 
 COMPILED_RESOURCE_FILES = resources.py
 
