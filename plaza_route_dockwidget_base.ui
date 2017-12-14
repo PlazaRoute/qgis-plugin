@@ -36,7 +36,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>:/plugins/PlazaRoute/icons/crosshairs.png</normaloff>:/plugins/PlazaRoute/icons/crosshairs.png</iconset>
+            <normaloff>:/plugins/PlazaRoute/icons/location.png</normaloff>:/plugins/PlazaRoute/icons/location.png</iconset>
           </property>
          </widget>
         </item>
@@ -61,7 +61,7 @@
           </property>
           <property name="icon">
            <iconset>
-            <normaloff>:/plugins/PlazaRoute/icons/crosshairs.png</normaloff>:/plugins/PlazaRoute/icons/crosshairs.png</iconset>
+            <normaloff>:/plugins/PlazaRoute/icons/location.png</normaloff>:/plugins/PlazaRoute/icons/location.png</iconset>
           </property>
          </widget>
         </item>
@@ -84,24 +84,16 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
-       <widget class="QPushButton" name="reset_btn">
-        <property name="text">
-         <string>Reset</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="1">
-       <widget class="QPushButton" name="show_route_btn">
-        <property name="text">
-         <string>Show Route</string>
-        </property>
-       </widget>
-      </item>
       <item row="2" column="1">
        <layout class="QHBoxLayout" name="departure_value_layout">
         <item>
          <widget class="QTimeEdit" name="departure_value">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="displayFormat">
            <string notr="true">HH:mm</string>
           </property>
@@ -122,21 +114,21 @@
       </item>
      </layout>
     </item>
-    <item row="1" column="0">
+    <item row="5" column="0">
      <widget class="Line" name="line">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
-    <item row="2" column="0">
+    <item row="6" column="0">
      <widget class="QLabel" name="direction_label">
       <property name="text">
        <string>Directions</string>
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
+    <item row="7" column="0">
      <widget class="QTextEdit" name="direction_value">
       <property name="enabled">
        <bool>true</bool>
@@ -145,6 +137,47 @@
        <bool>true</bool>
       </property>
      </widget>
+    </item>
+    <item row="3" column="0" rowspan="2">
+     <layout class="QHBoxLayout" name="commandLayout">
+      <item>
+       <widget class="QPushButton" name="show_route_btn">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Show Route</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="reset_btn">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Reset</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="config_btn">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset>
+          <normaloff>:/plugins/PlazaRoute/icons/settings.png</normaloff>:/plugins/PlazaRoute/icons/settings.png</iconset>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
