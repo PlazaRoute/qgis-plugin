@@ -22,6 +22,7 @@
 """
 
 import os
+import ConfigParser
 
 from PyQt4 import QtGui, uic
 from PyQt4.QtCore import pyqtSignal, Qt, QTime
@@ -49,7 +50,11 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.canvas = self.iface.mapCanvas()
         self.cross_cursor = QtGui.QCursor(Qt.CrossCursor)
 
-        self.plaza_route_routing_service = PlazaRouteRoutingService(self._handle_route, self._handle_error)
+        self.config_file_path = os.path.join(os.path.dirname(__file__), 'config.ini')
+        self.config = ConfigParser.ConfigParser()
+        self.config.read(self.config_file_path)
+
+        self.plaza_route_routing_service = PlazaRouteRoutingService(self._handle_route, self._handle_error, self.config)
         self.routing_generator = PlazaRouteDirectionsGenerator()
         self.point_transformer = PointTransformer(self.iface)
 
@@ -81,6 +86,7 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.departure_refresh_btn.clicked.connect(self._refresh_departure)
         self.reset_btn.clicked.connect(self._reset)
         self.show_route_btn.clicked.connect(self._show_route)
+        self.config_btn.clicked.connect(self._show_config_dialog)
 
     def _show_route(self):
         QtGui.QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -174,6 +180,15 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.start_value.clear()
         self.destination_value.clear()
         self.direction_value.clear()
+
+    def _show_config_dialog(self):
+        plaza_routing_url, ok = QtGui.QInputDialog.getText(self, 'Configuration', 'Plaza Routing URL:',
+                                                           text=self.config.get('plazaroute', 'plaza_routing_url'))
+        if ok:
+            self.config.set('plazaroute', 'plaza_routing_url', plaza_routing_url)
+            with open(self.config_file_path, 'wb') as config_file:
+                self.config.write(config_file)
+                self.plaza_route_routing_service.update_config(self.config)
 
     def _add_qgis_msg(self, msg, level=QgsMessageBar.CRITICAL):
         self.iface.messageBar().pushMessage('Error', msg, level=level)

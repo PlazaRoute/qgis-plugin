@@ -39,11 +39,11 @@ PLUGINNAME = PlazaRoute
 PY_FILES = \
 	__init__.py \
 	plaza_route.py plaza_route_dockwidget.py plaza_route_routing_service.py observer.py plaza_route_map_tool.py \
-	plaza_route_route_drawer.py plaza_route_directions_generator.py config.py
+	plaza_route_route_drawer.py plaza_route_directions_generator.py
 
 UI_FILES = plaza_route_dockwidget_base.ui
 
-EXTRAS = metadata.txt icon.png
+EXTRAS = metadata.txt icon.png config.ini
 
 EXTRA_DIRS = util icons
 
