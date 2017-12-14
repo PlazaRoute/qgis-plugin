@@ -8,11 +8,11 @@ This is the QGIS Plugin, which acts as a frontend to the [PlazaRoute service](ht
 * This plugin was tested under Fedora 26 and Ubuntu 16.04
 
 ## Installation
-* The path to the backend API can be configured in [config.py](https://github.com/PlazaRoute/qgis/blob/master/config.py)
+* The path to the backend API can be configured in [config.py](https://github.com/PlazaRoute/qgis-plugin/blob/master/config.py)
 * Clone the Repository into `PlazaRoute`:
 
 ```
-git clone https://github.com/PlazaRoute/qgis.git PlazaRoute
+git clone https://github.com/PlazaRoute/qgis-plugin.git PlazaRoute
 ```
 
 * Copy the entire `PlazaRoute` folder to the QGIS Plugin directory
