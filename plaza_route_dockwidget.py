@@ -182,13 +182,23 @@ class PlazaRouteDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.direction_value.clear()
 
     def _show_config_dialog(self):
-        plaza_routing_url, ok = QtGui.QInputDialog.getText(self, 'Configuration', 'Plaza Routing URL:',
-                                                           text=self.config.get('plazaroute', 'plaza_routing_url'))
+        config_dialog = self._create_config_dialog()
+        ok = config_dialog.exec_()
+        plaza_routing_url = config_dialog.textValue()
         if ok:
             self.config.set('plazaroute', 'plaza_routing_url', plaza_routing_url)
             with open(self.config_file_path, 'wb') as config_file:
                 self.config.write(config_file)
                 self.plaza_route_routing_service.update_config(self.config)
+
+    def _create_config_dialog(self):
+        config_dialog = QtGui.QInputDialog(self)
+        config_dialog.setInputMode(QtGui.QInputDialog.TextInput)
+        config_dialog.setWindowTitle('Configuration')
+        config_dialog.setLabelText('Plaza Routing URL:')
+        config_dialog.setTextValue(self.config.get('plazaroute', 'plaza_routing_url'))
+        config_dialog.resize(500, 100)
+        return config_dialog
 
     def _add_qgis_msg(self, msg, level=QgsMessageBar.CRITICAL):
         self.iface.messageBar().pushMessage('Error', msg, level=level)
